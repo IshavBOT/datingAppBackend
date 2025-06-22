@@ -5,9 +5,9 @@ const UserProfile = require("../models/UserProfile");
 // ✅ Complete or Update User Profile
 router.post("/complete", async (req, res) => {
   try {
-    const { email, bio, gender, year, branch, photoURL } = req.body;
+    const { email, name, bio, gender, year, branch, photoURL } = req.body;
 
-    if (!email || !bio || !gender || !year || !branch || !photoURL) {
+    if (!email || !name || !bio || !gender || !year || !branch || !photoURL) {
       return res.status(400).json({ error: "Missing fields" });
     }
 
@@ -17,6 +17,7 @@ router.post("/complete", async (req, res) => {
       await UserProfile.updateOne(
         { email },
         {
+          name,
           bio,
           gender,
           year,
@@ -28,6 +29,7 @@ router.post("/complete", async (req, res) => {
     } else {
       user = new UserProfile({
         email,
+        name,
         bio,
         gender,
         year,
@@ -142,7 +144,7 @@ router.post("/swipe", async (req, res) => {
 // ✅ Edit Profile
 router.put("/edit", async (req, res) => {
   try {
-    const { email, bio, gender, year, branch, photoURL } = req.body;
+    const { email, name, bio, gender, year, branch, photoURL } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
@@ -155,6 +157,7 @@ router.put("/edit", async (req, res) => {
     }
 
     // Update fields
+    user.name = name || user.name;
     user.bio = bio || user.bio;
     user.gender = gender || user.gender;
     user.year = year || user.year;
