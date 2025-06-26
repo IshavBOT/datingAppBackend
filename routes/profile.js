@@ -173,4 +173,14 @@ router.put("/edit", async (req, res) => {
   }
 });
 
+router.get("/getById", async (req, res) => {
+  try {
+    const profile = await UserProfile.findById(req.query.id);
+    if (!profile) return res.status(404).json({ error: "Not found" });
+    res.json(profile);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = router;
