@@ -5,7 +5,7 @@ const UserProfile = require("../models/UserProfile");
 // ✅ Complete or Update User Profile
 router.post("/complete", async (req, res) => {
   try {
-    const { email, name, bio, gender, year, branch, photoURL } = req.body;
+    const { email, name, bio, gender, year, branch, photoURL, tags } = req.body;
 
     if (!email || !name || !bio || !gender || !year || !branch || !photoURL) {
       return res.status(400).json({ error: "Missing fields" });
@@ -23,6 +23,7 @@ router.post("/complete", async (req, res) => {
           year,
           branch,
           photoURL,
+          tags: tags || [],
           profileCompleted: true,
         }
       );
@@ -35,6 +36,7 @@ router.post("/complete", async (req, res) => {
         year,
         branch,
         photoURL,
+        tags: tags || [],
         profileCompleted: true,
       });
       await user.save();
@@ -71,7 +73,7 @@ router.get("/get", async (req, res) => {
 // ✅ Get Profiles to Swipe (excluding already swiped/matched)
 router.get("/", async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { userId, branch, year, gender, tags } = req.query;
 
     if (!userId) {
       return res.status(400).json({ error: "Missing userId" });
@@ -87,13 +89,25 @@ router.get("/", async (req, res) => {
       ...currentUser.liked,
       ...currentUser.disliked,
       ...currentUser.matches,
+      ...currentUser.blocked,
       currentUser._id,
     ];
 
-    const profiles = await UserProfile.find({
+    // Build filter object
+    const filter = {
       _id: { $nin: excludedIds },
       profileCompleted: true,
-    });
+    };
+
+    // Add filters if provided
+    if (branch) filter.branch = branch;
+    if (year) filter.year = year;
+    if (gender) filter.gender = gender;
+    if (tags && tags.length > 0) {
+      filter.tags = { $in: Array.isArray(tags) ? tags : [tags] };
+    }
+
+    const profiles = await UserProfile.find(filter);
 
     res.status(200).json({ profiles });
   } catch (err) {
@@ -144,7 +158,7 @@ router.post("/swipe", async (req, res) => {
 // ✅ Edit Profile
 router.put("/edit", async (req, res) => {
   try {
-    const { email, name, bio, gender, year, branch, photoURL } = req.body;
+    const { email, name, bio, gender, year, branch, photoURL, tags } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
@@ -163,6 +177,7 @@ router.put("/edit", async (req, res) => {
     user.year = year || user.year;
     user.branch = branch || user.branch;
     user.photoURL = photoURL || user.photoURL;
+    user.tags = tags || user.tags;
 
     await user.save();
 

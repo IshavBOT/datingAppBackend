@@ -3,12 +3,23 @@ const UserProfile = require("../models/UserProfile");
 // ✅ Make sure this function is present and exported
 exports.getOtherProfiles = async (req, res) => {
   try {
-    const { email } = req.query;
+    const { email, userId } = req.query;
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const users = await UserProfile.find({ email: { $ne: email } });
+    // Get current user to check blocked users
+    const currentUser = await UserProfile.findOne({ email });
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Find users excluding the current user and blocked users
+    const users = await UserProfile.find({ 
+      email: { $ne: email },
+      _id: { $nin: currentUser.blocked } // Exclude blocked users
+    });
+
     res.status(200).json({ users });
   } catch (err) {
     console.error("Error getting other profiles:", err);

@@ -14,7 +14,12 @@ exports.getMatches = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ matches: user.matches });
+    // Filter out blocked users from matches
+    const filteredMatches = user.matches.filter(match => 
+      !user.blocked.includes(match._id)
+    );
+
+    res.status(200).json({ matches: filteredMatches });
   } catch (err) {
     console.error("Fetch matches error:", err);
     res.status(500).json({ message: "Internal server error" });

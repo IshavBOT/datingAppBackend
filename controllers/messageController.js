@@ -27,3 +27,39 @@ exports.getMessages = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+exports.getLastMessages = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { matchIds } = req.body; // Array of match user IDs
+
+    if (!matchIds || !Array.isArray(matchIds)) {
+      return res.status(400).json({ error: "Match IDs array is required" });
+    }
+
+    const lastMessages = [];
+
+    for (const matchId of matchIds) {
+      const lastMessage = await Message.findOne({
+        $or: [
+          { sender: userId, receiver: matchId },
+          { sender: matchId, receiver: userId },
+        ],
+      }).sort({ timestamp: -1 }).limit(1);
+
+      if (lastMessage) {
+        lastMessages.push({
+          matchId,
+          lastMessage: lastMessage.message,
+          timestamp: lastMessage.timestamp,
+          isFromMe: lastMessage.sender.toString() === userId
+        });
+      }
+    }
+
+    res.status(200).json(lastMessages);
+  } catch (err) {
+    console.error("Get last messages error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

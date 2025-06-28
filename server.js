@@ -81,15 +81,16 @@ const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profile");
 const swipeRoutes = require("./routes/swipe");
 const matchRoutes = require("./routes/match");
+const userActionsRoutes = require("./routes/userActions");
 
 app.use("/api", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/swipe", swipeRoutes);
 app.use("/api/matches", matchRoutes);
+app.use("/api/user-actions", userActionsRoutes);
 
 const messageRoutes = require("./routes/messageRoutes");
 app.use("/api/messages", messageRoutes);
-
 
 // Start server
 const PORT = process.env.PORT || 5000;
